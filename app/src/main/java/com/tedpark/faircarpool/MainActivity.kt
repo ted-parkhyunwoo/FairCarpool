@@ -6,10 +6,11 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.tedpark.faircarpool.ui.theme.FairCarpoolTheme
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -48,8 +49,9 @@ fun DriveDataUI() {
         OutlinedTextField(value = totalPerson, onValueChange = { totalPerson = it }, label = { Text("탑승인원") })
 
         Spacer(modifier = Modifier.height(16.dp))
-
+        val keyboardController = LocalSoftwareKeyboardController.current
         Button(onClick = {
+            keyboardController?.hide()
             val distance = totalDistance.toFloatOrNull() ?: 0f
             val economy = fuelEconomy.toFloatOrNull() ?: 0f
             val fuel = fuelCost.toIntOrNull() ?: 0
