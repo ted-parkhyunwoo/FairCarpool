@@ -72,7 +72,6 @@ fun PassengerSelector(
     }
 }
 
-
 @Composable
 fun DriveDataUI() {
     var totalDistance by remember { mutableStateOf("") }
