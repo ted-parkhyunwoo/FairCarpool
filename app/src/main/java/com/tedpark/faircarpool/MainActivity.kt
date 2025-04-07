@@ -12,6 +12,8 @@ import com.tedpark.faircarpool.ui.theme.FairCarpoolTheme
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.unit.sp
 
+import androidx.compose.material3.MenuAnchorType
+
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -49,7 +51,7 @@ fun PassengerSelector(
                 ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
             },
             modifier = Modifier
-                .menuAnchor()
+                .menuAnchor(MenuAnchorType.PrimaryEditable)
                 .fillMaxWidth()
                 .height(60.dp)
         )
