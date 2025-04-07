@@ -28,6 +28,9 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+const val HEIGHT_INPUT_FIELD = 64       // 모든 입력엔트리의 높이.
+
+// 탑승인원 입력필드를 사전에 1~6명으로 선택할수 있는 엔트리로 만듬.
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PassengerSelector(
@@ -53,7 +56,7 @@ fun PassengerSelector(
             modifier = Modifier
                 .menuAnchor(MenuAnchorType.PrimaryEditable)
                 .fillMaxWidth()
-                .height(60.dp)
+                .height(HEIGHT_INPUT_FIELD.dp)
         )
         ExposedDropdownMenu(
             expanded = expanded,
@@ -72,6 +75,26 @@ fun PassengerSelector(
     }
 }
 
+// OutlinedTextField 필드를 생성하는 함수.
+@Composable
+fun InputField(
+    label: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    suffix: String = "",
+    validateBlank: Boolean = true
+) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        label = { Text(label, fontSize = 12.sp) },
+        isError = validateBlank && value.isBlank(), // 조건부 에러 적용
+        modifier = Modifier.fillMaxWidth()
+            .height(HEIGHT_INPUT_FIELD.dp),
+        suffix = { if (suffix.isNotEmpty()) Text(suffix) }
+    )
+}
+
 @Composable
 fun DriveDataUI() {
     var totalDistance by remember { mutableStateOf("") }
@@ -82,28 +105,6 @@ fun DriveDataUI() {
     var totalPerson by remember { mutableStateOf("") }
     var result by remember { mutableStateOf("없음") }
 
-    // OutlinedTextField 필드를 생성하는 함수.
-    //원형: OutlinedTextField(value = totalDistance, onValueChange = { totalDistance = it }, modifier = Modifier.fillMaxWidth(), suffix = { Text("KM") }, label = { Text("총 운행거리", ) })
-    @Composable
-    fun InputField(
-        label: String,
-        value: String,
-        onValueChange: (String) -> Unit,
-        suffix: String = "",
-        modifier: Modifier = Modifier
-            .fillMaxWidth()
-            .height(60.dp),
-        validateBlank: Boolean = true
-    ) {
-        OutlinedTextField(
-            value = value,
-            onValueChange = onValueChange,
-            label = { Text(label, fontSize = 12.sp) },
-            isError = validateBlank && value.isBlank(), // 조건부 에러 적용
-            modifier = modifier,
-            suffix = { if (suffix.isNotEmpty()) Text(suffix) }
-        )
-    }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -114,7 +115,6 @@ fun DriveDataUI() {
         InputField("총 운행거리", totalDistance, { totalDistance = it }, "KM")
         InputField("연비", fuelEconomy, { fuelEconomy = it }, "KM/L")
         InputField("연료 가격", fuelCost, { fuelCost = it }, "원")
-//        InputField("탑승인원", totalPerson, { totalPerson = it }, "명")
         PassengerSelector(
             selectedValue = totalPerson,
             onValueChange = { totalPerson = it }
@@ -133,8 +133,7 @@ fun DriveDataUI() {
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
 
-            Button(onClick = {
-                // 초기화 버튼 동작
+            Button(onClick = {      // 초기화 버튼 동작
                 totalDistance = ""
                 fuelEconomy = ""
                 fuelCost = ""
@@ -145,29 +144,41 @@ fun DriveDataUI() {
                 keyboardController?.hide() // hide keyboard.
             }) { Text("초기화") }
 
-            Button(onClick = {
-                keyboardController?.hide() // hide keyboard.
-                val distance = totalDistance.toFloatOrNull() ?: 0f
-                val economy = fuelEconomy.toFloatOrNull() ?: 0f
-                val fuel = fuelCost.toIntOrNull() ?: 0
-                val toll = tollFee.toIntOrNull() ?: 0
-                val etc = etcCost.toIntOrNull() ?: 0
-                val persons = totalPerson.toIntOrNull() ?: 0
+            // 계산버튼 입력 검증(필수요소 비어있을시 버튼 비활성화 위한 조건체크 함수)
+            val isInputValid = (totalDistance.toFloatOrNull() ?: 0f) > 0 &&
+                    (fuelEconomy.toFloatOrNull() ?: 0f) > 0 &&
+                    (fuelCost.toIntOrNull() ?: 0) > 0 &&
+                    (totalPerson.toIntOrNull() ?: 0) > 0
 
-                if (distance > 0 && economy > 0 && fuel > 0 && persons > 0) {
-                    val totalFuel = distance / economy
-                    val totalCost = (totalFuel * fuel) + toll + etc
-                    val costPerPerson = totalCost / persons
+            // 계산버튼
+            Button(
+                onClick = {
+                    keyboardController?.hide() // hide keyboard.
+                    val distance = totalDistance.toFloatOrNull() ?: 0f
+                    val economy = fuelEconomy.toFloatOrNull() ?: 0f
+                    val fuel = fuelCost.toIntOrNull() ?: 0
+                    val toll = tollFee.toIntOrNull() ?: 0
+                    val etc = etcCost.toIntOrNull() ?: 0
+                    val persons = totalPerson.toIntOrNull() ?: 0
 
-                    result = """
+                    if (distance > 0 && economy > 0 && fuel > 0 && persons > 0) {
+                        val totalFuel = distance / economy
+                        val totalCost = (totalFuel * fuel) + toll + etc
+                        val costPerPerson = totalCost / persons
+
+                        result = """
                 총 사용 연료: ${"%.2f".format(totalFuel)} 리터
                 총 비용: ${totalCost.toInt()} 원
                 1명당 비용: ${costPerPerson.toInt()} 원
             """.trimIndent()
-                } else {
-                    result = "잘못 입력된 필드가 있습니다."
-                }
-            }) { Text("계산") }
+                    } else {
+                        result = "잘못 입력된 필드가 있습니다."
+                    }
+                },
+                enabled = isInputValid
+            ) {
+                Text("계산")
+            }
         }
 
         Spacer(modifier = Modifier.height(16.dp))
