@@ -51,7 +51,7 @@ fun DriveDataUI() {
         Spacer(modifier = Modifier.height(16.dp))
         val keyboardController = LocalSoftwareKeyboardController.current
         Button(onClick = {
-            keyboardController?.hide()
+            keyboardController?.hide() // hide keyboard.
             val distance = totalDistance.toFloatOrNull() ?: 0f
             val economy = fuelEconomy.toFloatOrNull() ?: 0f
             val fuel = fuelCost.toIntOrNull() ?: 0
