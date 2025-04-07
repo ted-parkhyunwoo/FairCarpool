@@ -26,6 +26,51 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun PassengerSelector(
+    selectedValue: String,
+    onValueChange: (String) -> Unit
+) {
+    val options = (1..6).map { it.toString() }
+    var expanded by remember { mutableStateOf(false) }
+
+    ExposedDropdownMenuBox(
+        expanded = expanded,
+        onExpandedChange = { expanded = !expanded },
+    ) {
+        OutlinedTextField(
+            value = selectedValue,
+            onValueChange = { }, // 직접 입력 막음
+            readOnly = true,
+            isError = selectedValue.isBlank(),
+            label = { Text("탑승인원", fontSize = 12.sp) },
+            trailingIcon = {
+                ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+            },
+            modifier = Modifier
+                .menuAnchor()
+                .fillMaxWidth()
+                .height(60.dp)
+        )
+        ExposedDropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
+            options.forEach { option ->
+                DropdownMenuItem(
+                    text = { Text(option + "명") },
+                    onClick = {
+                        onValueChange(option)
+                        expanded = false
+                    }
+                )
+            }
+        }
+    }
+}
+
+
 @Composable
 fun DriveDataUI() {
     var totalDistance by remember { mutableStateOf("") }
@@ -34,7 +79,7 @@ fun DriveDataUI() {
     var tollFee by remember { mutableStateOf("") }
     var etcCost by remember { mutableStateOf("") }
     var totalPerson by remember { mutableStateOf("") }
-    var result by remember { mutableStateOf("None") }
+    var result by remember { mutableStateOf("없음") }
 
     // OutlinedTextField 필드를 생성하는 함수.
     //원형: OutlinedTextField(value = totalDistance, onValueChange = { totalDistance = it }, modifier = Modifier.fillMaxWidth(), suffix = { Text("KM") }, label = { Text("총 운행거리", ) })
@@ -46,7 +91,7 @@ fun DriveDataUI() {
         suffix: String = "",
         modifier: Modifier = Modifier
             .fillMaxWidth()
-            .height(63.dp),
+            .height(60.dp),
         validateBlank: Boolean = true
     ) {
         OutlinedTextField(
@@ -61,14 +106,18 @@ fun DriveDataUI() {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
+            .padding(20.dp),
         verticalArrangement = Arrangement.Top
     ) {
         Text("필수:", fontSize = 12.sp)
         InputField("총 운행거리", totalDistance, { totalDistance = it }, "KM")
         InputField("연비", fuelEconomy, { fuelEconomy = it }, "KM/L")
         InputField("연료 가격", fuelCost, { fuelCost = it }, "원")
-        InputField("탑승인원", totalPerson, { totalPerson = it }, "명")
+//        InputField("탑승인원", totalPerson, { totalPerson = it }, "명")
+        PassengerSelector(
+            selectedValue = totalPerson,
+            onValueChange = { totalPerson = it }
+        )
 
         Text("선택:", fontSize = 12.sp)
         InputField("톨게이트 비용", tollFee, { tollFee = it }, "원", validateBlank = false)
@@ -118,8 +167,6 @@ fun DriveDataUI() {
                     result = "잘못 입력된 필드가 있습니다."
                 }
             }) { Text("계산") }
-
-
         }
 
         Spacer(modifier = Modifier.height(16.dp))
