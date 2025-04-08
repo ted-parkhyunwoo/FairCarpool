@@ -123,7 +123,7 @@ fun DriveDataUI() {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Text("선택:", fontSize = 12.sp)
+        Text("선택(입력 안해도 됨):", fontSize = 12.sp)
         InputField("톨게이트 비용", "원", tollFee, { tollFee = it }, validateBlank = false)
         InputField("추가 비용(식사, 음료 등)", "원", etcCost, { etcCost = it }, validateBlank = false)
 
